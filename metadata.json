@@ -1,0 +1,8 @@
+{
+  "name": "Remix Lemur Catcher",
+  "description": "Aplikasi web ekstraksi frame video otomatis dan bulk download ZIP dengan maskot lemur dan warna soft.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
