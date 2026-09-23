@@ -132,6 +132,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ))}
             </div>
           </div>
+          {/* Custom Mascot Image Info */}
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+            <div className="flex items-center gap-2 font-bold text-emerald-400 mb-1">
+              <span>🐾</span>
+              <span>Ganti Foto Lemur (Folder Public)</span>
+            </div>
+            <p className="text-slate-300 text-[11px] leading-relaxed">
+              Anda dapat mengunggah atau mengganti file gambar langsung di folder file explorer:
+              <code className="block mt-1 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 font-mono text-emerald-300 text-[10px]">
+                /public/lemur.png (atau lemur.jpg)
+              </code>
+              Aplikasi akan langsung menampilkan foto asli tanpa diedit.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { ExportFormat } from '../types';
 import { LemurMascot } from './LemurMascot';
-import mascotImg from '../assets/images/lemur_mascot_1786422171388.jpg';
+import mascotImg from '../assets/images/lemur_popout_mascot_1790156325174.jpg';
 
 interface HeaderProps {
   totalCount: number;
@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenStandaloneModal,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800/80 px-4 sm:px-8 py-3.5 shadow-sm">
+    <header className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 shadow-md">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand & Stats */}
         <div className="flex items-center gap-3">

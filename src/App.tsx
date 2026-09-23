@@ -11,10 +11,9 @@ import {
   AlertCircle,
   HelpCircle,
   RefreshCw,
-  SlidersHorizontal,
-  FileSpreadsheet,
-  Zap,
-  Trash2
+  Trash2,
+  Settings,
+  FileCode2
 } from 'lucide-react';
 import { VideoItem, AppSettings, Toast, ExportFormat } from './types';
 import {
@@ -25,13 +24,13 @@ import {
   cleanupVideoItemUrls,
 } from './utils/videoUtils';
 import { createZipArchive } from './utils/zipUtils';
-import { Header } from './components/Header';
 import { UploadZone } from './components/UploadZone';
 import { VideoCard } from './components/VideoCard';
 import { ProgressBar } from './components/ProgressBar';
 import { SettingsModal } from './components/SettingsModal';
 import { StandaloneHtmlModal } from './components/StandaloneHtmlModal';
 import { ToastContainer } from './components/Toast';
+import bgNature from './assets/images/green_meadow_lake_bg_1790154956627.jpg';
 
 export default function App() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -446,123 +445,176 @@ export default function App() {
   const processingCount = videos.filter((v) => v.status === 'processing').length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950">
-      {/* Toast Notifications */}
-      <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
+    <div className="min-h-screen relative flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950 bg-slate-100 text-slate-800 overflow-x-hidden">
+      {/* Background Wallpaper */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-95"
+        style={{
+          backgroundImage: `url(${bgNature})`,
+        }}
+      >
+        {/* Soft natural veil */}
+        <div className="absolute inset-0 bg-white/10 backdrop-brightness-100" />
+      </div>
 
-      {/* Header Bar */}
-      <Header
-        totalCount={videos.length}
-        doneCount={doneCount}
-        processingCount={processingCount}
-        errorCount={errorCount}
-        isProcessingZip={isProcessingZip}
-        exportFormat={settings.defaultFormat}
-        onDownloadAllZip={handleDownloadAllZip}
-        onResetAllFrames={handleResetAllFrames}
-        onClearAll={handleClearAll}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenStandaloneModal={() => setIsStandaloneModalOpen(true)}
-      />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Toast Notifications */}
+        <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
 
-      {/* Main Content Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8 flex flex-col gap-6">
-        {/* Bulk Extraction Progress Bar */}
-        <ProgressBar
-          isVisible={batchProgress.isProcessing}
-          progressPercent={
-            batchProgress.total > 0
-              ? (batchProgress.processed / batchProgress.total) * 100
-              : 0
-          }
-          title={`Lemur Catcher mengekstrak frame video (${batchProgress.processed} dari ${batchProgress.total})...`}
-          subtitle={`Sedang memproses: ${batchProgress.currentName}`}
-        />
+        {/* Floating Top-Right Glassmorphic Controls (Light Theme) */}
+        <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2.5">
+          <button
+            onClick={() => setIsStandaloneModalOpen(true)}
+            className="px-3.5 py-2.5 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-emerald-900 font-semibold shadow-xl shadow-slate-900/5 transition-all active:scale-95 text-xs flex items-center gap-2"
+            title="Unduh versi Single HTML Standalone (Offline ready)"
+          >
+            <FileCode2 className="w-4 h-4 text-emerald-700" />
+            <span className="hidden sm:inline">Single HTML</span>
+          </button>
 
-        {/* ZIP Compression Progress Bar */}
-        <ProgressBar
-          isVisible={isProcessingZip}
-          progressPercent={zipProgress.percent}
-          title="Menyiapkan File ZIP Massal..."
-          subtitle={zipProgress.subtitle}
-        />
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2.5 sm:p-3 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-slate-700 hover:text-emerald-800 shadow-xl shadow-slate-900/5 transition-all active:scale-95 group"
+            title="Pengaturan Format & Kualitas Capture"
+            aria-label="Pengaturan"
+          >
+            <Settings className="w-5 h-5 text-slate-700 group-hover:text-emerald-700 group-hover:rotate-45 transition-transform duration-300" />
+          </button>
+        </div>
 
-        {/* Upload Dropzone */}
-        {videos.length === 0 ? (
-          <UploadZone onFilesSelected={handleFilesSelected} />
-        ) : (
-          <div className="flex flex-col gap-4">
-            {/* Search & Filter Toolbar */}
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg backdrop-blur-md">
-              {/* Search input */}
-              <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari nama video atau output..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500/50"
-                />
-              </div>
+        {/* Main Content Body */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 pt-16 sm:pt-20 pb-8 flex flex-col gap-6">
+          {/* Bulk Extraction Progress Bar */}
+          <ProgressBar
+            isVisible={batchProgress.isProcessing}
+            progressPercent={
+              batchProgress.total > 0
+                ? (batchProgress.processed / batchProgress.total) * 100
+                : 0
+            }
+            title={`Lemur Catcher mengekstrak frame video (${batchProgress.processed} dari ${batchProgress.total})...`}
+            subtitle={`Sedang memproses: ${batchProgress.currentName}`}
+          />
 
-              {/* Status Filters & Add More */}
-              <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-end">
-                <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
-                  <button
-                    onClick={() => setFilterStatus('all')}
-                    className={`px-3 py-1 rounded-lg transition-all ${
-                      filterStatus === 'all'
-                        ? 'bg-teal-500 text-slate-950 font-bold'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Semua ({videos.length})
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus('done')}
-                    className={`px-3 py-1 rounded-lg transition-all ${
-                      filterStatus === 'done'
-                        ? 'bg-emerald-500 text-slate-950 font-bold'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Siap ({doneCount})
-                  </button>
-                  {errorCount > 0 && (
-                    <button
-                      onClick={() => setFilterStatus('error')}
-                      className={`px-3 py-1 rounded-lg transition-all ${
-                        filterStatus === 'error'
-                          ? 'bg-rose-500 text-white font-bold'
-                          : 'text-rose-400'
-                      }`}
-                    >
-                      Gagal ({errorCount})
-                    </button>
-                  )}
+          {/* ZIP Compression Progress Bar */}
+          <ProgressBar
+            isVisible={isProcessingZip}
+            progressPercent={zipProgress.percent}
+            title="Menyiapkan File ZIP Massal..."
+            subtitle={zipProgress.subtitle}
+          />
+
+          {/* Upload Dropzone */}
+          {videos.length === 0 ? (
+            <UploadZone onFilesSelected={handleFilesSelected} />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {/* Search, Filter & Bulk Actions Toolbar (Light Glassmorphism) */}
+              <div className="bg-white/50 border border-white/70 rounded-3xl p-4 sm:p-5 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl shadow-slate-900/5 backdrop-blur-2xl">
+                {/* Left: Search input */}
+                <div className="relative w-full lg:w-72">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama video atau output..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white/70 border border-white/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500/80 shadow-sm"
+                  />
                 </div>
 
-                {/* Clear All button */}
-                <button
-                  onClick={handleClearAll}
-                  className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/20 hover:border-rose-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
-                  title="Hapus semua video dalam antrean"
-                  id="btn-clear-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Hapus Semua</span>
-                </button>
+                {/* Right: Filters, ZIP Download, Reset 50%, Clear All & Add More */}
+                <div className="flex items-center flex-wrap gap-2.5 w-full lg:w-auto justify-end">
+                  {/* Status Filters */}
+                  <div className="flex items-center bg-white/60 p-1 rounded-xl border border-white/80 text-xs font-medium shadow-sm">
+                    <button
+                      onClick={() => setFilterStatus('all')}
+                      className={`px-3 py-1 rounded-lg transition-all ${
+                        filterStatus === 'all'
+                          ? 'bg-emerald-600 text-white font-bold shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Semua ({videos.length})
+                    </button>
+                    <button
+                      onClick={() => setFilterStatus('done')}
+                      className={`px-3 py-1 rounded-lg transition-all ${
+                        filterStatus === 'done'
+                          ? 'bg-emerald-600 text-white font-bold shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Siap ({doneCount})
+                    </button>
+                    {errorCount > 0 && (
+                      <button
+                        onClick={() => setFilterStatus('error')}
+                        className={`px-3 py-1 rounded-lg transition-all ${
+                          filterStatus === 'error'
+                            ? 'bg-rose-500 text-white font-bold shadow-sm'
+                            : 'text-rose-500'
+                        }`}
+                      >
+                        Gagal ({errorCount})
+                      </button>
+                    )}
+                  </div>
 
-                {/* Compact Add More Upload button */}
-                <UploadZone onFilesSelected={handleFilesSelected} compact />
+                  {/* Reset All to 50% */}
+                  <button
+                    onClick={handleResetAllFrames}
+                    disabled={processingCount > 0}
+                    className="px-3 py-2 rounded-xl bg-white/60 hover:bg-white/80 text-slate-700 hover:text-slate-900 border border-white/80 text-xs font-medium flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+                    title="Selesaikan ulang otomatis capture frame ke 50% durasi untuk semua video"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="hidden sm:inline">Reset 50%</span>
+                  </button>
+
+                  {/* Download All ZIP */}
+                  <button
+                    onClick={handleDownloadAllZip}
+                    disabled={doneCount === 0 || isProcessingZip}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-700/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                    id="btn-download-zip"
+                  >
+                    {isProcessingZip ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Mengompresi ZIP...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Unduh Semua (.ZIP)</span>
+                        <span className="ml-0.5 px-1 py-0.2 rounded bg-black/15 text-[10px] uppercase font-mono">
+                          {settings.defaultFormat}
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Clear All button */}
+                  <button
+                    onClick={handleClearAll}
+                    className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+                    title="Hapus semua video dalam antrean"
+                    id="btn-clear-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Semua</span>
+                  </button>
+
+                  {/* Compact Add More Upload button */}
+                  <UploadZone onFilesSelected={handleFilesSelected} compact />
+                </div>
               </div>
-            </div>
 
             {/* Video Cards Grid */}
             {filteredVideos.length === 0 ? (
-              <div className="p-12 text-center bg-slate-900/40 rounded-2xl border border-slate-800 text-slate-400">
-                <Search className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+              <div className="p-12 text-center bg-white/45 backdrop-blur-xl rounded-3xl border border-white/70 text-slate-600 shadow-lg">
+                <Search className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                 <p className="text-sm font-semibold">Tidak ada video yang cocok dengan filter.</p>
               </div>
             ) : (
@@ -582,47 +634,6 @@ export default function App() {
             )}
           </div>
         )}
-
-        {/* Informational Guidance Banner */}
-        <div className="mt-auto pt-8 border-t border-slate-800/80">
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-400">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 shrink-0">
-                <Zap className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-200 mb-1">Otomatisasi Lemur 50% Midpoint</h4>
-                <p className="leading-relaxed">
-                  Lemur Catcher langsung mengintai frame di pertengahan durasi video secara instan tanpa perlu menunggu server.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 shrink-0">
-                <SlidersHorizontal className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-200 mb-1">Presisi Detik & Jarum Jahit</h4>
-                <p className="leading-relaxed">
-                  Gunakan tombol mikro-step <span className="font-mono text-teal-300">±0.2s</span> untuk mengunci posisi gerakan jarum saat menjahit.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0">
-                <FileSpreadsheet className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-200 mb-1">Preservasi Nama File Synchronous</h4>
-                <p className="leading-relaxed">
-                  Nama file hasil capture gambar dijamin 100% persis sama dengan nama video asal (contoh: <span className="font-mono text-emerald-300">Jahit_Kerah_01.jpg</span>).
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
 
       {/* Settings Modal */}
@@ -641,6 +652,7 @@ export default function App() {
         isOpen={isStandaloneModalOpen}
         onClose={() => setIsStandaloneModalOpen(false)}
       />
+      </div>
     </div>
   );
 }

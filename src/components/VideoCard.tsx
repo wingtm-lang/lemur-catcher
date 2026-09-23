@@ -108,23 +108,23 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   return (
     <div
-      className={`group bg-slate-900/90 rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col shadow-xl ${
+      className={`group bg-white/55 backdrop-blur-2xl rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col shadow-xl shadow-slate-900/5 ${
         item.status === 'processing'
-          ? 'border-teal-500/50 shadow-teal-500/5'
+          ? 'border-emerald-500/80 shadow-emerald-500/10'
           : item.status === 'done'
-          ? 'border-slate-800 hover:border-teal-500/40'
-          : 'border-rose-500/40'
+          ? 'border-white/80 hover:border-emerald-400/80'
+          : 'border-rose-300'
       }`}
       id={`video-card-${item.id}`}
     >
       {/* Top Header Bar */}
-      <div className="p-3.5 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between gap-2">
+      <div className="p-3.5 bg-white/40 border-b border-white/60 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-400 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-white/70 border border-white/80 flex items-center justify-center text-slate-600 shrink-0 shadow-sm">
             {viewMode === 'preview' ? (
-              <ImageIcon className="w-4 h-4 text-teal-400" />
+              <ImageIcon className="w-4 h-4 text-emerald-600" />
             ) : (
-              <VideoIcon className="w-4 h-4 text-sky-400" />
+              <VideoIcon className="w-4 h-4 text-teal-600" />
             )}
           </div>
 
@@ -137,11 +137,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                   onChange={(e) => setTempName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
                   autoFocus
-                  className="bg-slate-800 border border-teal-500/50 text-white text-xs px-2 py-0.5 rounded focus:outline-none w-full"
+                  className="bg-white border border-emerald-500/60 text-slate-800 text-xs px-2 py-0.5 rounded-lg focus:outline-none w-full shadow-sm"
                 />
                 <button
                   onClick={handleNameSave}
-                  className="p-1 rounded bg-teal-500 text-slate-950 hover:bg-teal-400"
+                  className="p-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm"
                 >
                   <Check className="w-3 h-3" />
                 </button>
@@ -149,7 +149,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             ) : (
               <div className="flex items-center gap-1.5 group/title">
                 <h4
-                  className="text-xs font-semibold text-slate-200 truncate cursor-pointer hover:text-teal-300 transition-colors"
+                  className="text-xs font-bold text-slate-800 truncate cursor-pointer hover:text-emerald-700 transition-colors"
                   title={`Output: ${item.outputFilename} (Klik untuk edit nama file)`}
                   onClick={() => setIsEditingName(true)}
                 >
@@ -157,14 +157,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                 </h4>
                 <button
                   onClick={() => setIsEditingName(true)}
-                  className="text-slate-500 hover:text-slate-300 opacity-0 group-hover/title:opacity-100 transition-opacity p-0.5"
+                  className="text-slate-400 hover:text-slate-700 opacity-0 group-hover/title:opacity-100 transition-opacity p-0.5"
                   title="Edit Nama File Output"
                 >
                   <Edit2 className="w-3 h-3" />
                 </button>
               </div>
             )}
-            <p className="text-[10px] text-slate-400 truncate">
+            <p className="text-[10px] text-slate-500 truncate">
               Asli: {item.name} ({formatFileSize(item.size)})
             </p>
           </div>
@@ -173,13 +173,13 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         {/* Status Badge */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span
-            className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}
+            className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border shadow-sm ${statusBadge.color}`}
           >
             {statusBadge.label}
           </span>
           <button
             onClick={() => onRemove(item.id)}
-            className="text-slate-400 hover:text-rose-400 p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-50 transition-colors"
             title="Hapus video ini"
           >
             <Trash2 className="w-4 h-4" />
@@ -287,14 +287,14 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       {/* Controls & Scrubbing Area */}
-      <div className="p-4 flex-1 flex flex-col justify-between gap-3 bg-slate-900/60">
+      <div className="p-4 flex-1 flex flex-col justify-between gap-3 bg-white/30">
         {/* Timeline Slider & Time Display */}
         <div>
-          <div className="flex items-center justify-between text-xs text-slate-300 mb-1.5">
-            <span className="font-mono text-[11px] text-teal-300 font-semibold flex items-center gap-1">
-              <Sliders className="w-3 h-3 text-teal-400" /> Detik: {formatTime(item.currentTime)}
+          <div className="flex items-center justify-between text-xs text-slate-700 mb-1.5 font-medium">
+            <span className="font-mono text-[11px] text-emerald-800 font-semibold flex items-center gap-1">
+              <Sliders className="w-3 h-3 text-emerald-600" /> Detik: {formatTime(item.currentTime)}
             </span>
-            <span className="font-mono text-[11px] text-slate-400">
+            <span className="font-mono text-[11px] text-slate-500">
               Durasi: {formatTime(item.duration)}
             </span>
           </div>
@@ -306,7 +306,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             step={0.1}
             value={item.currentTime}
             onChange={(e) => onTimeChange(item.id, parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400 focus:outline-none"
+            className="w-full h-2 bg-slate-200/80 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none"
             id={`scrubber-${item.id}`}
           />
 
@@ -315,28 +315,28 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onTimeChange(item.id, Math.max(0, item.currentTime - 1))}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors"
+                className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white text-slate-700 border border-white/80 text-[10px] font-mono transition-colors shadow-sm"
                 title="Mundur 1 Detik"
               >
                 -1.0s
               </button>
               <button
                 onClick={() => onTimeChange(item.id, Math.max(0, item.currentTime - 0.2))}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors"
+                className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white text-slate-700 border border-white/80 text-[10px] font-mono transition-colors shadow-sm"
                 title="Mundur 0.2 Detik (Presisi Jarum)"
               >
                 -0.2s
               </button>
               <button
                 onClick={() => onTimeChange(item.id, Math.min(item.duration, item.currentTime + 0.2))}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors"
+                className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white text-slate-700 border border-white/80 text-[10px] font-mono transition-colors shadow-sm"
                 title="Maju 0.2 Detik (Presisi Jarum)"
               >
                 +0.2s
               </button>
               <button
                 onClick={() => onTimeChange(item.id, Math.min(item.duration, item.currentTime + 1))}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors"
+                className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white text-slate-700 border border-white/80 text-[10px] font-mono transition-colors shadow-sm"
                 title="Maju 1 Detik"
               >
                 +1.0s
@@ -347,21 +347,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onTimeChange(item.id, item.duration * 0.25)}
-                className="px-1.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[10px] font-mono"
+                className="px-1.5 py-1 rounded-lg bg-white/60 hover:bg-white text-slate-600 hover:text-slate-900 text-[10px] font-mono border border-white/80 shadow-sm"
                 title="Capture di 25% durasi"
               >
                 25%
               </button>
               <button
                 onClick={() => onTimeChange(item.id, item.duration * 0.5)}
-                className="px-1.5 py-1 rounded bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 text-[10px] font-mono font-semibold"
+                className="px-1.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-800 border border-emerald-500/30 text-[10px] font-mono font-bold shadow-sm"
                 title="Capture di 50% durasi (Midpoint)"
               >
                 50%
               </button>
               <button
                 onClick={() => onTimeChange(item.id, item.duration * 0.75)}
-                className="px-1.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[10px] font-mono"
+                className="px-1.5 py-1 rounded-lg bg-white/60 hover:bg-white text-slate-600 hover:text-slate-900 text-[10px] font-mono border border-white/80 shadow-sm"
                 title="Capture di 75% durasi"
               >
                 75%
@@ -371,17 +371,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         </div>
 
         {/* Format Selector & Individual Download Action */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+        <div className="pt-2.5 border-t border-white/60 flex items-center justify-between gap-2">
           {/* Format Selection */}
-          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-lg border border-slate-800">
+          <div className="flex items-center gap-1 bg-white/70 p-1 rounded-xl border border-white/80 shadow-sm">
             {(['jpg', 'png', 'webp'] as const).map((fmt) => (
               <button
                 key={fmt}
                 onClick={() => onFormatChange(item.id, fmt)}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold transition-all ${
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono uppercase font-bold transition-all ${
                   item.format === fmt
-                    ? 'bg-teal-500 text-slate-950 shadow'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {fmt}
@@ -393,7 +393,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           <button
             onClick={() => onDownloadSingle(item.id)}
             disabled={!item.capturedBlob || item.status !== 'done'}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 hover:text-teal-200 border border-teal-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-700/15 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Unduh</span>

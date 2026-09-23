@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 
 interface LemurMascotProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   state?: 'idle' | 'searching' | 'processing' | 'done' | 'celebrate';
   showSpeechBubble?: boolean;
   speechText?: string;
@@ -14,117 +14,91 @@ export const LemurMascot: React.FC<LemurMascotProps> = ({
   state = 'idle',
   showSpeechBubble = false,
   speechText = 'Siap tangkap frame!',
-  imageSrc,
+  imageSrc = '/ab23f2ab5e0fba2456c6e79071b4887c.jpg',
 }) => {
-  const sizeClasses = {
-    sm: 'w-10 h-10',
-    md: 'w-16 h-16',
-    lg: 'w-24 h-24',
-    xl: 'w-32 h-32',
+  const [currentSrc, setCurrentSrc] = useState(imageSrc);
+  const [hasError, setHasError] = useState(false);
+
+  const containerDimensions = {
+    sm: 'w-14 h-14',
+    md: 'w-20 h-20',
+    lg: 'w-28 h-28',
+    xl: 'w-36 h-36',
+    '2xl': 'w-48 h-48',
   }[size];
+
+  const speechOffsets = {
+    sm: '-top-7 text-[10px]',
+    md: '-top-9 text-xs',
+    lg: '-top-10 text-xs',
+    xl: '-top-12 text-sm',
+    '2xl': '-top-14 text-sm',
+  }[size];
+
+  const handleImageError = () => {
+    if (currentSrc === '/ab23f2ab5e0fba2456c6e79071b4887c.jpg') {
+      setCurrentSrc('/lemur.png');
+    } else if (currentSrc === '/lemur.png') {
+      setCurrentSrc('/lemur.jpg');
+    } else {
+      setHasError(true);
+    }
+  };
 
   return (
     <div className="relative inline-flex flex-col items-center select-none group">
       {/* Speech bubble */}
       {showSpeechBubble && (
         <motion.div
-          initial={{ opacity: 0, y: 5, scale: 0.9 }}
+          initial={{ opacity: 0, y: 8, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="absolute -top-10 z-20 px-3 py-1 bg-slate-800/90 border border-teal-500/30 text-teal-200 text-[11px] font-semibold rounded-full shadow-lg backdrop-blur-md whitespace-nowrap flex items-center gap-1.5"
+          className={`absolute ${speechOffsets} z-30 px-4 py-1.5 bg-white/95 border border-white text-emerald-900 font-bold font-handwriting text-lg md:text-xl rounded-2xl shadow-xl shadow-slate-900/10 backdrop-blur-2xl whitespace-nowrap flex items-center gap-2`}
         >
-          <span className="animate-pulse">🐾</span>
-          {speechText}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 border-r border-b border-teal-500/30 rotate-45" />
+          <span className="text-emerald-600 animate-bounce">🐾</span>
+          <span>{speechText}</span>
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/95 border-r border-b border-white rotate-45" />
         </motion.div>
       )}
 
-      {/* Mascot Image or Animated SVG */}
+      {/* Pop-Out Mascot Stage */}
       <motion.div
         animate={
           state === 'processing'
-            ? { y: [0, -6, 0], rotate: [-2, 2, -2] }
+            ? { y: [0, -8, 0], rotate: [-2, 2, -2] }
             : state === 'celebrate'
-            ? { y: [0, -12, 0], scale: [1, 1.08, 1] }
-            : { y: [0, -2, 0] }
+            ? { y: [0, -14, 0], scale: [1, 1.1, 1] }
+            : { y: [0, -4, 0] }
         }
         transition={{
           repeat: Infinity,
-          duration: state === 'processing' ? 1.2 : state === 'celebrate' ? 0.6 : 3,
+          duration: state === 'processing' ? 1.2 : state === 'celebrate' ? 0.6 : 3.5,
           ease: 'easeInOut',
         }}
-        className={`relative ${sizeClasses} rounded-2xl p-1 bg-gradient-to-br from-teal-500/20 via-slate-800 to-amber-500/20 border border-teal-500/30 shadow-xl flex items-center justify-center overflow-hidden`}
+        className={`relative ${containerDimensions} flex items-end justify-center`}
       >
-        {imageSrc ? (
-          <img
-            src={imageSrc}
-            alt="Lemur Catcher Mascot"
-            className="w-full h-full object-cover rounded-xl"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          /* SVG Vector Lemur with Wiggling Ringed Tail & Big Eyes */
-          <svg
-            viewBox="0 0 100 100"
-            className="w-full h-full text-teal-300"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Wiggling Ringed Tail */}
-            <motion.path
-              d="M 25 75 C 10 70 5 45 15 30 C 25 15 45 20 35 35 C 30 45 40 55 50 65"
-              stroke="currentColor"
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeDasharray="4 4"
-              animate={{ rotate: [-5, 8, -5], originX: 0.5, originY: 0.8 }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+        {/* Soft glowing aura under mascot */}
+        <div className="absolute bottom-0 w-[88%] h-[88%] rounded-3xl bg-emerald-400/20 blur-xl pointer-events-none group-hover:bg-emerald-400/35 transition-all duration-500" />
+
+        {/* Mascot Container - Pop Out / Clean Image Presentation */}
+        <div className="relative z-10 w-full h-full flex items-center justify-center overflow-visible pointer-events-none">
+          {!hasError ? (
+            <img
+              src={currentSrc}
+              alt="Lemur Mascot"
+              onError={handleImageError}
+              className="w-full h-full object-contain rounded-3xl shadow-2xl shadow-slate-900/10 border-2 border-white/80 transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
+              referrerPolicy="no-referrer"
             />
-
-            {/* Body */}
-            <ellipse cx="50" cy="65" rx="22" ry="20" fill="#334155" />
-            <ellipse cx="50" cy="67" rx="14" ry="14" fill="#f8fafc" opacity="0.9" />
-
-            {/* Ears */}
-            <circle cx="32" cy="35" r="9" fill="#475569" />
-            <circle cx="32" cy="35" r="5" fill="#f43f5e" opacity="0.6" />
-            <circle cx="68" cy="35" r="9" fill="#475569" />
-            <circle cx="68" cy="35" r="5" fill="#f43f5e" opacity="0.6" />
-
-            {/* Head */}
-            <circle cx="50" cy="42" r="20" fill="#334155" />
-            {/* White face mask characteristic of Lemurs */}
-            <path
-              d="M 34 38 C 34 30 66 30 66 38 C 66 52 34 52 34 38 Z"
-              fill="#f8fafc"
-            />
-            {/* Dark eye rings */}
-            <circle cx="42" cy="40" r="6" fill="#1e293b" />
-            <circle cx="58" cy="40" r="6" fill="#1e293b" />
-
-            {/* Big Amber Lemur Eyes */}
-            <circle cx="42" cy="40" r="4.5" fill="#f59e0b" />
-            <circle cx="58" cy="40" r="4.5" fill="#f59e0b" />
-            <circle cx="42" cy="40" r="2.5" fill="#0f172a" />
-            <circle cx="58" cy="40" r="2.5" fill="#0f172a" />
-            {/* Eye glints */}
-            <circle cx="40.5" cy="38.5" r="1.2" fill="#ffffff" />
-            <circle cx="56.5" cy="38.5" r="1.2" fill="#ffffff" />
-
-            {/* Cute Snout */}
-            <polygon points="50,45 47,48 53,48" fill="#1e293b" />
-            <path d="M 47 50 Q 50 52 53 50" stroke="#1e293b" strokeWidth="1.2" strokeLinecap="round" />
-
-            {/* Tail Rings indicator */}
-            <path
-              d="M 20 35 C 18 30 22 25 28 22"
-              stroke="#f59e0b"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-        )}
+          ) : (
+            <div className="w-[85%] h-[85%] rounded-3xl bg-white/80 border border-white flex items-center justify-center text-4xl shadow-xl">
+              🐾
+            </div>
+          )}
+        </div>
       </motion.div>
     </div>
   );
 };
+
+

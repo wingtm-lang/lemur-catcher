@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .font-handwriting {
+    font-family: 'Caveat', 'Kalam', cursive;
+  }
+  .font-hand-story {
+    font-family: 'Patrick Hand', 'Kalam', cursive;
+  }
+  .font-kalam {
+    font-family: 'Kalam', cursive;
+  }
+}
+
