@@ -19,7 +19,7 @@ export interface WallpaperDisplaySettings {
 }
 
 const DB_NAME = 'LemurCatcherDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'wallpapers';
 
 const ACTIVE_WALLPAPER_KEY = 'lemur_active_wallpaper_id';
@@ -46,6 +46,9 @@ function openDB(): Promise<IDBDatabase> {
       const db = (event.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('mascots')) {
+        db.createObjectStore('mascots', { keyPath: 'id' });
       }
     };
 

@@ -45,3 +45,11 @@ export interface AppSettings {
   defaultCaptureTimeRatio: number; // 0.5 (50% midpoint)
   autoDownloadOnDone: boolean;
 }
+
+export interface DropzoneDisplaySettings {
+  maxWidth: number;
+  opacity: number;
+  blur: number;
+  borderOpacity: number;
+}
+

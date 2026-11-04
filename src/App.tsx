@@ -13,7 +13,8 @@ import {
   RefreshCw,
   Trash2,
   Settings,
-  FileCode2
+  FileCode2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { VideoItem, AppSettings, Toast, ExportFormat } from './types';
 import {
@@ -32,6 +33,8 @@ import { StandaloneHtmlModal } from './components/StandaloneHtmlModal';
 import { ToastContainer } from './components/Toast';
 import { BackgroundCameraButton } from './components/BackgroundCameraButton';
 import { BackgroundModal } from './components/BackgroundModal';
+import { MascotModal } from './components/MascotModal';
+import { DropzoneSettingsPopover } from './components/DropzoneSettingsPopover';
 import {
   CustomWallpaper,
   WallpaperDisplaySettings,
@@ -42,7 +45,26 @@ import {
   getStoredWallpaperSettings,
   saveStoredWallpaperSettings,
 } from './utils/wallpaperStorage';
+import {
+  CustomMascot,
+  MascotSettings,
+  PresetMascot,
+  PRESET_MASCOTS,
+  DEFAULT_MASCOT_URL,
+  getAllStoredMascots,
+  getActiveMascotId,
+  setActiveMascotId,
+  getMascotById,
+  getStoredMascotSettings,
+  saveStoredMascotSettings,
+} from './utils/mascotStorage';
+import {
+  DropzoneDisplaySettings,
+  getStoredDropzoneSettings,
+  saveStoredDropzoneSettings,
+} from './utils/dropzoneStorage';
 import bgNature from './assets/images/green_meadow_lake_bg_1790154956627.jpg';
+
 
 export default function App() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -63,6 +85,29 @@ export default function App() {
   const [activeWallpaperIdState, setActiveWallpaperIdState] = useState<string | null>(null);
   const [currentBackgroundUrl, setCurrentBackgroundUrl] = useState<string>(bgNature);
   const [wallpaperSettings, setWallpaperSettings] = useState<WallpaperDisplaySettings>(getStoredWallpaperSettings);
+
+  // Mascot Customizer State & Device History
+  const [isMascotModalOpen, setIsMascotModalOpen] = useState(false);
+  const [mascotModalInitialTab, setMascotModalInitialTab] = useState<'bubble' | 'upload' | 'presets' | 'history'>('bubble');
+  const [storedMascots, setStoredMascots] = useState<CustomMascot[]>([]);
+  const [activeMascotIdState, setActiveMascotIdState] = useState<string | null>(null);
+  const [currentMascotUrl, setCurrentMascotUrl] = useState<string>(DEFAULT_MASCOT_URL);
+  const [mascotSettings, setMascotSettings] = useState<MascotSettings>(getStoredMascotSettings);
+
+  const handleOpenMascotModal = (tab: 'bubble' | 'upload' | 'presets' | 'history' = 'bubble') => {
+    setMascotModalInitialTab(tab);
+    setIsMascotModalOpen(true);
+  };
+
+  // Dropzone Width & Transparency Settings (Persisted on Device)
+  const [dropzoneSettings, setDropzoneSettings] = useState<DropzoneDisplaySettings>(getStoredDropzoneSettings);
+  const [isDropzoneSettingsOpen, setIsDropzoneSettingsOpen] = useState(false);
+
+  const handleUpdateDropzoneSettings = (newSettings: DropzoneDisplaySettings) => {
+    setDropzoneSettings(newSettings);
+    saveStoredDropzoneSettings(newSettings);
+  };
+
 
   // Batch progress state
   const [batchProgress, setBatchProgress] = useState({
@@ -155,6 +200,68 @@ export default function App() {
   const handleUpdateWallpaperSettings = (newSettings: WallpaperDisplaySettings) => {
     setWallpaperSettings(newSettings);
     saveStoredWallpaperSettings(newSettings);
+  };
+
+  // Refresh & load mascots history from device IndexedDB
+  const refreshMascotsList = useCallback(async () => {
+    try {
+      const list = await getAllStoredMascots();
+      setStoredMascots(list);
+
+      const activeId = getActiveMascotId();
+      setActiveMascotIdState(activeId);
+
+      if (activeId) {
+        if (activeId.startsWith('preset_')) {
+          const preset = PRESET_MASCOTS.find((p) => p.id === activeId);
+          if (preset) {
+            setCurrentMascotUrl(preset.url);
+          }
+        } else {
+          const found = list.find((m) => m.id === activeId) || (await getMascotById(activeId));
+          if (found) {
+            setCurrentMascotUrl(found.dataUrl);
+          } else {
+            setActiveMascotId(null);
+            setActiveMascotIdState(null);
+            setCurrentMascotUrl(DEFAULT_MASCOT_URL);
+          }
+        }
+      } else {
+        setCurrentMascotUrl(DEFAULT_MASCOT_URL);
+      }
+    } catch (err) {
+      console.error('Error loading mascot history:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshMascotsList();
+  }, [refreshMascotsList]);
+
+  const handleSelectDefaultMascot = () => {
+    setActiveMascotId(null);
+    setActiveMascotIdState(null);
+    setCurrentMascotUrl(DEFAULT_MASCOT_URL);
+  };
+
+  const handleSelectPresetMascot = (preset: PresetMascot) => {
+    setActiveMascotId(preset.id);
+    setActiveMascotIdState(preset.id);
+    setCurrentMascotUrl(preset.url);
+    addToast('info', 'Karakter Diubah', `"${preset.name}" aktif sebagai maskot.`);
+  };
+
+  const handleSelectCustomMascot = (mascot: CustomMascot) => {
+    setActiveMascotId(mascot.id);
+    setActiveMascotIdState(mascot.id);
+    setCurrentMascotUrl(mascot.dataUrl);
+    addToast('success', 'Foto Karakter Diterapkan', `"${mascot.name}" aktif sebagai maskot.`);
+  };
+
+  const handleUpdateMascotSettings = (newSettings: MascotSettings) => {
+    setMascotSettings(newSettings);
+    saveStoredMascotSettings(newSettings);
   };
 
   // Function to extract frame for a specific video item
@@ -545,10 +652,45 @@ export default function App() {
         <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
 
         {/* Floating Top-Right Glassmorphic Controls (Light Theme) */}
-        <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2.5">
+        <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 sm:gap-2.5">
+          <button
+            onClick={() => handleOpenMascotModal('upload')}
+            className="px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl bg-white/55 hover:bg-white/85 backdrop-blur-2xl border border-white/80 hover:border-emerald-400/90 text-emerald-950 font-semibold shadow-xl shadow-slate-900/5 transition-all active:scale-95 text-xs flex items-center gap-2 group"
+            title="Ganti Foto Karakter / Maskot Lemur (Kustom Sendiri)"
+          >
+            <div className="w-4 h-4 rounded-full overflow-hidden border border-emerald-600/40 flex items-center justify-center bg-white shrink-0 group-hover:scale-110 transition-transform">
+              <img src={currentMascotUrl} alt="" className="w-full h-full object-cover" />
+            </div>
+            <span className="hidden sm:inline">Ganti Karakter</span>
+          </button>
+
+          {/* Dropzone Settings directly beside Ganti Karakter */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropzoneSettingsOpen(!isDropzoneSettingsOpen)}
+              className={`px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl backdrop-blur-2xl border transition-all active:scale-95 text-xs flex items-center gap-2 font-semibold shadow-xl shadow-slate-900/5 ${
+                isDropzoneSettingsOpen
+                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-700/20'
+                  : 'bg-white/55 hover:bg-white/85 border-white/80 hover:border-emerald-400/90 text-emerald-950'
+              }`}
+              title="Atur lebar dan transparansi kotak drag & drop video"
+            >
+              <SlidersHorizontal className={`w-3.5 h-3.5 ${isDropzoneSettingsOpen ? 'text-white' : 'text-emerald-700'}`} />
+              <span className="hidden sm:inline">Dropzone Settings</span>
+            </button>
+
+            <DropzoneSettingsPopover
+              isOpen={isDropzoneSettingsOpen}
+              onClose={() => setIsDropzoneSettingsOpen(false)}
+              settings={dropzoneSettings}
+              onUpdateSettings={handleUpdateDropzoneSettings}
+              align="right"
+            />
+          </div>
+
           <button
             onClick={() => setIsStandaloneModalOpen(true)}
-            className="px-3.5 py-2.5 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-emerald-900 font-semibold shadow-xl shadow-slate-900/5 transition-all active:scale-95 text-xs flex items-center gap-2"
+            className="px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-emerald-900 font-semibold shadow-xl shadow-slate-900/5 transition-all active:scale-95 text-xs flex items-center gap-2"
             title="Unduh versi Single HTML Standalone (Offline ready)"
           >
             <FileCode2 className="w-4 h-4 text-emerald-700" />
@@ -557,7 +699,7 @@ export default function App() {
 
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2.5 sm:p-3 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-slate-700 hover:text-emerald-800 shadow-xl shadow-slate-900/5 transition-all active:scale-95 group"
+            className="p-2 sm:p-2.5 rounded-2xl bg-white/45 hover:bg-white/70 backdrop-blur-2xl border border-white/70 hover:border-emerald-400/80 text-slate-700 hover:text-emerald-800 shadow-xl shadow-slate-900/5 transition-all active:scale-95 group"
             title="Pengaturan Format & Kualitas Capture"
             aria-label="Pengaturan"
           >
@@ -589,7 +731,17 @@ export default function App() {
 
           {/* Upload Dropzone */}
           {videos.length === 0 ? (
-            <UploadZone onFilesSelected={handleFilesSelected} />
+            <UploadZone
+              onFilesSelected={handleFilesSelected}
+              mascotUrl={currentMascotUrl}
+              speechText={mascotSettings.speechText}
+              showSpeechBubble={mascotSettings.showSpeechBubble}
+              speechFont={mascotSettings.speechFont}
+              movingObject={mascotSettings.movingObject}
+              onOpenMascotModal={() => handleOpenMascotModal('bubble')}
+              settings={dropzoneSettings}
+              onUpdateSettings={handleUpdateDropzoneSettings}
+            />
           ) : (
             <div className="flex flex-col gap-4">
               {/* Search, Filter & Bulk Actions Toolbar (Light Glassmorphism) */}
@@ -755,6 +907,23 @@ export default function App() {
         onSelectCustom={handleSelectCustomBackground}
         onWallpapersUpdated={refreshWallpapersList}
         onSettingsChange={handleUpdateWallpaperSettings}
+        onToast={addToast}
+      />
+
+      {/* Mascot Customizer & History Modal */}
+      <MascotModal
+        isOpen={isMascotModalOpen}
+        onClose={() => setIsMascotModalOpen(false)}
+        initialTab={mascotModalInitialTab}
+        activeMascotId={activeMascotIdState}
+        activeMascotUrl={currentMascotUrl}
+        mascots={storedMascots}
+        mascotSettings={mascotSettings}
+        onSelectDefault={handleSelectDefaultMascot}
+        onSelectPreset={handleSelectPresetMascot}
+        onSelectCustom={handleSelectCustomMascot}
+        onMascotsUpdated={refreshMascotsList}
+        onSettingsChange={handleUpdateMascotSettings}
         onToast={addToast}
       />
       </div>
