@@ -30,6 +30,18 @@ import { ProgressBar } from './components/ProgressBar';
 import { SettingsModal } from './components/SettingsModal';
 import { StandaloneHtmlModal } from './components/StandaloneHtmlModal';
 import { ToastContainer } from './components/Toast';
+import { BackgroundCameraButton } from './components/BackgroundCameraButton';
+import { BackgroundModal } from './components/BackgroundModal';
+import {
+  CustomWallpaper,
+  WallpaperDisplaySettings,
+  getAllStoredWallpapers,
+  getActiveWallpaperId,
+  setActiveWallpaperId,
+  getWallpaperById,
+  getStoredWallpaperSettings,
+  saveStoredWallpaperSettings,
+} from './utils/wallpaperStorage';
 import bgNature from './assets/images/green_meadow_lake_bg_1790154956627.jpg';
 
 export default function App() {
@@ -44,6 +56,13 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isStandaloneModalOpen, setIsStandaloneModalOpen] = useState(false);
+  const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
+
+  // Background Wallpaper State & Device History
+  const [storedWallpapers, setStoredWallpapers] = useState<CustomWallpaper[]>([]);
+  const [activeWallpaperIdState, setActiveWallpaperIdState] = useState<string | null>(null);
+  const [currentBackgroundUrl, setCurrentBackgroundUrl] = useState<string>(bgNature);
+  const [wallpaperSettings, setWallpaperSettings] = useState<WallpaperDisplaySettings>(getStoredWallpaperSettings);
 
   // Batch progress state
   const [batchProgress, setBatchProgress] = useState({
@@ -86,6 +105,57 @@ export default function App() {
       videos.forEach(cleanupVideoItemUrls);
     };
   }, []);
+
+  // Refresh & load wallpapers history from device IndexedDB
+  const refreshWallpapersList = useCallback(async () => {
+    try {
+      const list = await getAllStoredWallpapers();
+      setStoredWallpapers(list);
+
+      const activeId = getActiveWallpaperId();
+      setActiveWallpaperIdState(activeId);
+
+      if (activeId) {
+        const found = list.find((w) => w.id === activeId) || (await getWallpaperById(activeId));
+        if (found) {
+          setCurrentBackgroundUrl(found.dataUrl);
+        } else if (!activeId.startsWith('preset_')) {
+          setActiveWallpaperId(null);
+          setActiveWallpaperIdState(null);
+          setCurrentBackgroundUrl(bgNature);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading wallpaper history:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshWallpapersList();
+  }, [refreshWallpapersList]);
+
+  const handleSelectDefaultBackground = (url: string, id: string | null) => {
+    setActiveWallpaperId(id);
+    setActiveWallpaperIdState(id);
+    setCurrentBackgroundUrl(url);
+    if (!id) {
+      addToast('info', 'Background Diubah ke Default', 'Padang Rumput Hijau diterapkan.');
+    } else {
+      addToast('info', 'Background Diubah', 'Preset background diterapkan.');
+    }
+  };
+
+  const handleSelectCustomBackground = (wp: CustomWallpaper) => {
+    setActiveWallpaperId(wp.id);
+    setActiveWallpaperIdState(wp.id);
+    setCurrentBackgroundUrl(wp.dataUrl);
+    addToast('success', 'Background Diterapkan', `"${wp.name}" aktif sebagai background.`);
+  };
+
+  const handleUpdateWallpaperSettings = (newSettings: WallpaperDisplaySettings) => {
+    setWallpaperSettings(newSettings);
+    saveStoredWallpaperSettings(newSettings);
+  };
 
   // Function to extract frame for a specific video item
   const processVideoFrame = async (
@@ -446,15 +516,28 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950 bg-slate-100 text-slate-800 overflow-x-hidden">
-      {/* Background Wallpaper */}
+      {/* Dynamic Background Wallpaper with Custom Image & History Support */}
       <div
-        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-95"
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
         style={{
-          backgroundImage: `url(${bgNature})`,
+          backgroundImage: `url(${currentBackgroundUrl})`,
+          filter: `blur(${wallpaperSettings.blur}px) brightness(${wallpaperSettings.brightness}%)`,
+          transform: wallpaperSettings.blur > 0 ? 'scale(1.04)' : 'none',
         }}
       >
-        {/* Soft natural veil */}
-        <div className="absolute inset-0 bg-white/10 backdrop-brightness-100" />
+        {/* Soft protective contrast veil */}
+        {wallpaperSettings.overlayMode === 'light' && (
+          <div
+            className="absolute inset-0 bg-white"
+            style={{ opacity: wallpaperSettings.overlayOpacity }}
+          />
+        )}
+        {wallpaperSettings.overlayMode === 'dark' && (
+          <div
+            className="absolute inset-0 bg-slate-950"
+            style={{ opacity: wallpaperSettings.overlayOpacity }}
+          />
+        )}
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -651,6 +734,28 @@ export default function App() {
       <StandaloneHtmlModal
         isOpen={isStandaloneModalOpen}
         onClose={() => setIsStandaloneModalOpen(false)}
+      />
+
+      {/* Floating Camera Button (Bottom Right) to Change Background & View History */}
+      <BackgroundCameraButton
+        onClick={() => setIsBackgroundModalOpen(true)}
+        hasCustomWallpaper={Boolean(activeWallpaperIdState)}
+        savedCount={storedWallpapers.length}
+      />
+
+      {/* Background Customizer & History Modal */}
+      <BackgroundModal
+        isOpen={isBackgroundModalOpen}
+        onClose={() => setIsBackgroundModalOpen(false)}
+        activeWallpaperId={activeWallpaperIdState}
+        activeWallpaperUrl={currentBackgroundUrl}
+        wallpapers={storedWallpapers}
+        displaySettings={wallpaperSettings}
+        onSelectDefault={handleSelectDefaultBackground}
+        onSelectCustom={handleSelectCustomBackground}
+        onWallpapersUpdated={refreshWallpapersList}
+        onSettingsChange={handleUpdateWallpaperSettings}
+        onToast={addToast}
       />
       </div>
     </div>
